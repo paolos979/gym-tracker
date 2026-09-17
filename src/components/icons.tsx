@@ -100,3 +100,9 @@ export const IconTimer = (p: IconProps) => (
     <path d="M12 9v4l2 2M9 2h6" />
   </Svg>
 );
+export const IconLibrary = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M4 5v14M9 5v14M14 6l4 13M4 5h5M4 19h5" />
+    <path d="m13 7 4-1 4 12-4 1z" />
+  </Svg>
+);

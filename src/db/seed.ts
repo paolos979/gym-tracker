@@ -1,37 +1,31 @@
 /**
  * DATI DI ESEMPIO
  *
- * Al primo avvio l'app crea alcuni esercizi e le schede Push / Pull / Gambe,
+ * Al primo avvio l'app crea alcuni esercizi (presi dalla libreria in
+ * src/domain/exerciseCatalog.ts) e le schede Push / Pull / Gambe,
  * così puoi provarla subito. Puoi modificarli o archiviarli liberamente:
  * non verranno ricreati.
  */
 import { DEFAULT_SETTINGS } from '../domain/defaults';
+import { catalogExercise } from '../domain/exerciseCatalog';
 import type { Exercise } from '../domain/types';
 import { db, type GymDatabase } from './database';
-import { buildExercise, buildTemplate, type NewExerciseInput } from './exercises';
+import { buildExercise, buildTemplate, catalogToInput } from './exercises';
 
-const PUSH: NewExerciseInput[] = [
-  { name: 'Panca piana con bilanciere', muscleGroup: 'chest', type: 'compound', repMin: 6, repMax: 10 },
-  { name: 'Lento avanti con manubri', muscleGroup: 'shoulders', type: 'compound', roundingStepKg: 2 },
-  { name: 'Croci ai cavi', muscleGroup: 'chest', type: 'isolation', repMin: 10, repMax: 15 },
-  { name: 'Alzate laterali', muscleGroup: 'shoulders', type: 'isolation', repMin: 12, repMax: 15, roundingStepKg: 2 },
-  { name: 'Push down ai cavi', muscleGroup: 'triceps', type: 'isolation', repMin: 10, repMax: 15 },
-];
-
-const PULL: NewExerciseInput[] = [
-  { name: 'Trazioni alla sbarra', muscleGroup: 'back', type: 'compound', repMin: 6, repMax: 10, isBodyweight: true },
-  { name: 'Rematore con bilanciere', muscleGroup: 'back', type: 'compound' },
-  { name: 'Lat machine', muscleGroup: 'back', type: 'compound', roundingStepKg: 2.5 },
-  { name: 'Curl con manubri', muscleGroup: 'biceps', type: 'isolation', roundingStepKg: 2 },
-  { name: 'Face pull', muscleGroup: 'shoulders', type: 'isolation', repMin: 12, repMax: 15 },
-];
-
-const LEGS: NewExerciseInput[] = [
-  { name: 'Squat con bilanciere', muscleGroup: 'quads', type: 'compound', repMin: 6, repMax: 10, targetSets: 4 },
-  { name: 'Stacco rumeno', muscleGroup: 'hamstrings', type: 'compound', repMin: 8, repMax: 10 },
-  { name: 'Leg press', muscleGroup: 'quads', type: 'compound', repMin: 10, repMax: 15, roundingStepKg: 5 },
-  { name: 'Leg curl', muscleGroup: 'hamstrings', type: 'isolation', repMin: 10, repMax: 15, roundingStepKg: 2.5 },
-  { name: 'Calf raise in piedi', muscleGroup: 'calves', type: 'isolation', repMin: 12, repMax: 15, roundingStepKg: 2.5 },
+/** Schede iniziali, indicate con i codici della libreria. */
+const STARTER_TEMPLATES: { name: string; exercises: string[] }[] = [
+  {
+    name: 'Push',
+    exercises: ['panca-piana-bilanciere', 'lento-avanti-manubri', 'croci-ai-cavi', 'alzate-laterali', 'push-down-cavi'],
+  },
+  {
+    name: 'Pull',
+    exercises: ['trazioni', 'rematore-bilanciere', 'lat-machine', 'curl-manubri', 'face-pull'],
+  },
+  {
+    name: 'Gambe',
+    exercises: ['squat-bilanciere', 'stacco-rumeno', 'leg-press', 'leg-curl', 'calf-raise-in-piedi'],
+  },
 ];
 
 /**
@@ -46,15 +40,12 @@ export async function seedOnFirstLaunch(database: GymDatabase = db): Promise<boo
     const settings = DEFAULT_SETTINGS;
     await database.settings.put(settings);
 
-    const groups: [string, NewExerciseInput[]][] = [
-      ['Push', PUSH],
-      ['Pull', PULL],
-      ['Gambe', LEGS],
-    ];
-    for (const [templateName, inputs] of groups) {
-      const exercises: Exercise[] = inputs.map((input) => buildExercise(input, settings));
+    for (const template of STARTER_TEMPLATES) {
+      const exercises: Exercise[] = template.exercises.map((id) =>
+        buildExercise(catalogToInput(catalogExercise(id)), settings),
+      );
       await database.exercises.bulkPut(exercises);
-      await database.templates.put(buildTemplate(templateName, exercises.map((e) => e.id)));
+      await database.templates.put(buildTemplate(template.name, exercises.map((e) => e.id)));
     }
     return true;
   });

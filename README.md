@@ -24,6 +24,7 @@ src/
     defaults.ts           Valori predefiniti ed etichette in italiano
     format.ts             Formattazione (kg con la virgola, date, durate…)
     session.ts            Operazioni sulle serie durante l'allenamento
+    exerciseCatalog.ts    Libreria di esercizi pronti (bilanciere, manubri, macchine, cavi…)
     stats.ts              1RM stimato (Epley), andamento, record, conteggi
     backup.ts             Formato del file di backup e controllo prima dell'importazione
     progression/          ★ Logica di progressione
@@ -59,6 +60,12 @@ public/icon.svg           Icona dell'app (dopo averla cambiata: npm run icons)
 ```
 
 I file `*.test.ts` accanto al codice contengono i test.
+
+## Aggiungere esercizi alla libreria
+
+La libreria è l'elenco di esercizi pronti che compare in **Gestione → Esercizi → «Aggiungi dalla
+libreria»**. Per aggiungerne uno, copia una riga in `src/domain/exerciseCatalog.ts`: i commenti in
+cima al file spiegano ogni campo. I test (`npm test`) segnalano valori incoerenti e nomi doppi.
 
 ## Modificare le regole di progressione
 

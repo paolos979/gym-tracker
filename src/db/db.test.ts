@@ -7,7 +7,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS } from '../domain/defaults';
 import type { Exercise, ExerciseLog, Session, SetEntry } from '../domain/types';
 import { GymDatabase, newId } from './database';
-import { buildExercise, listExercises, listTemplates, saveExercise } from './exercises';
+import { EXERCISE_CATALOG } from '../domain/exerciseCatalog';
+import { addExercisesFromCatalog, buildExercise, listExercises, listTemplates, saveExercise } from './exercises';
 import { getExerciseHistory, suggestionForExercise } from './history';
 import { seedOnFirstLaunch } from './seed';
 import { getSettings, saveSettings } from './settings';
@@ -161,5 +162,46 @@ describe('storico e suggerimenti', () => {
   it('senza storico è la prima volta', async () => {
     const s = await suggestionForExercise(bench(), database);
     expect(s.action).toBe('first_time');
+  });
+});
+
+describe('libreria di esercizi', () => {
+  it('aggiunge gli esercizi scelti con i valori della libreria', async () => {
+    const { added, skipped } = await addExercisesFromCatalog(['lat-machine', 'panca-piana-manubri'], database);
+    expect(skipped).toEqual([]);
+    expect(added.map((e) => e.name)).toEqual(['Lat machine', 'Panca piana con manubri']);
+
+    const byName = new Map((await listExercises({}, database)).map((e) => [e.name, e]));
+    const dumbbellPress = byName.get('Panca piana con manubri')!;
+    expect(dumbbellPress.roundingStepKg).toBe(2); // passo dei manubri
+    expect(dumbbellPress.incrementKg).toBe(2.5); // multiarticolare parte superiore
+    expect(dumbbellPress.repMin).toBe(8);
+    expect(dumbbellPress.repMax).toBe(12);
+    expect(byName.get('Lat machine')?.restSeconds).toBe(150);
+  });
+
+  it('salta gli esercizi già presenti, anche con maiuscole o spazi diversi', async () => {
+    await saveExercise(
+      buildExercise({ name: '  lat   MACHINE ', muscleGroup: 'back', type: 'compound' }, DEFAULT_SETTINGS),
+      database,
+    );
+    const { added, skipped } = await addExercisesFromCatalog(['lat-machine', 'hack-squat'], database);
+    expect(skipped).toEqual(['Lat machine']);
+    expect(added.map((e) => e.name)).toEqual(['Hack squat']);
+  });
+
+  it('non crea doppioni se lo stesso esercizio è scelto due volte', async () => {
+    const { added, skipped } = await addExercisesFromCatalog(['crunch', 'crunch'], database);
+    expect(added).toHaveLength(1);
+    expect(skipped).toEqual(['Crunch']);
+  });
+
+  it('i dati di esempio restano 15 esercizi presi dalla libreria', async () => {
+    await seedOnFirstLaunch(database);
+    const names = (await listExercises({}, database)).map((e) => e.name);
+    expect(names).toHaveLength(15);
+    for (const name of names) {
+      expect(EXERCISE_CATALOG.some((c) => c.name === name), name).toBe(true);
+    }
   });
 });

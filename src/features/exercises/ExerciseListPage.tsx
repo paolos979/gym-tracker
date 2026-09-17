@@ -4,11 +4,13 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { IconChevronRight, IconPlus } from '../../components/icons';
+import { IconChevronRight, IconLibrary, IconPlus } from '../../components/icons';
 import { PageBody, PageHeader } from '../../components/layout';
-import { ButtonLink, EmptyState, Toggle } from '../../components/ui';
+import { Button, ButtonLink, EmptyState, Toggle } from '../../components/ui';
 import { inputClasses } from '../../components/styles';
 import { listExercises } from '../../db/exercises';
+import { CatalogSheet } from './CatalogSheet';
+import { useCatalogAvailableCount } from './useCatalogAvailableCount';
 import { EXERCISE_TYPE_LABELS, MUSCLE_GROUP_LABELS } from '../../domain/defaults';
 import { formatDecimal } from '../../domain/format';
 import type { Exercise, MuscleGroup } from '../../domain/types';
@@ -16,6 +18,9 @@ import type { Exercise, MuscleGroup } from '../../domain/types';
 export function ExerciseListPage() {
   const [showArchived, setShowArchived] = useState(false);
   const [query, setQuery] = useState('');
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const available = useCatalogAvailableCount();
   const exercises = useLiveQuery(() => listExercises({ includeArchived: showArchived }), [showArchived]);
 
   const filtered = (exercises ?? []).filter((e) => e.name.toLowerCase().includes(query.trim().toLowerCase()));
@@ -43,6 +48,17 @@ export function ExerciseListPage() {
           onChange={(e) => setQuery(e.target.value)}
         />
 
+        <Button className="w-full" onClick={() => setLibraryOpen(true)}>
+          <IconLibrary size={20} />
+          Aggiungi dalla libreria{available !== undefined && available > 0 ? ` (${available} pronti)` : ''}
+        </Button>
+
+        {message && (
+          <div role="status" className="rounded-2xl bg-accent/15 p-3 text-accent">
+            {message}
+          </div>
+        )}
+
         {exercises && groups.length === 0 && (
           <EmptyState title={query ? 'Nessun risultato' : 'Nessun esercizio'}>
             {!query && 'Tocca «Nuovo» per creare il primo esercizio.'}
@@ -64,6 +80,14 @@ export function ExerciseListPage() {
 
         <Toggle checked={showArchived} onChange={setShowArchived} label="Mostra archiviati" />
       </PageBody>
+
+      <CatalogSheet
+        open={libraryOpen}
+        onClose={() => setLibraryOpen(false)}
+        onAdded={(count) =>
+          setMessage(count === 1 ? 'Aggiunto 1 esercizio.' : `Aggiunti ${count} esercizi.`)
+        }
+      />
     </>
   );
 }
