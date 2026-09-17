@@ -1,0 +1,63 @@
+@import 'tailwindcss';
+
+/*
+ * TEMA SCURO
+ * Questi colori diventano classi Tailwind: bg-bg, bg-surface, text-muted, text-accent, ecc.
+ * Cambiali qui per modificare l'aspetto di tutta l'app.
+ */
+@theme {
+  --color-bg: #0b0d10;
+  --color-surface: #15181d;
+  --color-surface-2: #1f242b;
+  --color-line: #2b313a;
+  --color-text: #e8eaed;
+  --color-muted: #9aa3ad;
+  --color-accent: #a3e635;
+  --color-accent-ink: #0b0d10;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Spazi per notch e barra Home dell'iPhone */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body {
+    background: var(--color-bg);
+    color: var(--color-text);
+    /* Niente "rimbalzo" di sfondo bianco e niente evidenziazione grigia al tocco */
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  a {
+    /* Evita lo zoom col doppio tocco sui pulsanti */
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Almeno 16px nei campi: sotto questa misura iPhone fa zoom automatico */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  /* Nasconde le frecce dei campi numerici */
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}

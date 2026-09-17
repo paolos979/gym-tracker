@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0b0d10"/>
+  <g fill="#a3e635">
+    <!-- barra -->
+    <rect x="150" y="238" width="212" height="36" rx="10"/>
+    <!-- dischi sinistra -->
+    <rect x="96" y="166" width="46" height="180" rx="14"/>
+    <rect x="58" y="202" width="34" height="108" rx="12"/>
+    <!-- dischi destra -->
+    <rect x="370" y="166" width="46" height="180" rx="14"/>
+    <rect x="420" y="202" width="34" height="108" rx="12"/>
+  </g>
+</svg>
